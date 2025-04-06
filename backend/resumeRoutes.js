@@ -1,9 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const Resume = require('./models/Resume');
+const fs = require('fs-extra');
+const path = require('path');
+const { OpenAI } = require('openai');
+const { PDFDocument } = require('pdf-lib');
+const { analyzeResume } = require('./aiCalling');
 
 
 const extractTextFromPDF = async (filePath) => {
@@ -44,7 +48,30 @@ router.post('/upload', upload.single('resume'), async (req, res) => {
 
      console.log(resume)
     await resume.save();
-    res.status(200).json({ message: 'Resume uploaded and parsed successfully!', resume });
+    const aiReview = await analyzeResume(extractedText);
+    const resumeText = await extractTextFromPDF(filePath );
+    const aiResult = await analyzeResume(aiReview.enhancedResume);
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const fontSize = 12;
+    let y = page.getHeight() - 30;
+
+    const lines = aiResult.enhancedResume.split('\n');
+    lines.forEach(line => {
+      if (y < 30) {
+        page = pdfDoc.addPage();
+        y = page.getHeight() - 30;
+      }
+      page.drawText(line, { x: 30, y, size: fontSize });
+      y -= fontSize + 2;
+    });
+
+    const enhancedPdfBytes = await pdfDoc.save();
+    const outputPath = path.join(__dirname, '../downloads', `${Date.now()}_enhanced_resume.pdf`);
+    await fs.writeFile(outputPath, enhancedPdfBytes);
+
+    res.status(200).json({ message: 'Resume uploaded and parsed successfully!', resume,aiReview });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to process resume.' });
