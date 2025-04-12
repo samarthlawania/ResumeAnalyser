@@ -7,6 +7,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { OpenAI } = require('openai');
 const { PDFDocument } = require('pdf-lib');
+// const fontBytes = fs.readFileSync("./fonts/NotoSans-Regular.ttf");
 const { analyzeResume } = require('./aiCalling');
 
 
@@ -35,6 +36,32 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+async function preparePdfForDownload(aiResult){
+  const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const fontSize = 12;
+  //  const customFont = await pdfDoc.embedFont(fontBytes);
+    let y = page.getHeight() - 30;
+
+    const lines = aiResult.enhancedResume.split('\n');
+    lines.forEach(line => {
+      line = line.replace(/[^\x00-\x7F]/g, "");
+      if (y < 30) {
+        page = pdfDoc.addPage();
+        y = page.getHeight() - 30;
+      }
+      page.drawText(line, { x: 30, y, size: fontSize });
+      y -= fontSize + 2;
+    });
+    const enhancedPdfBytes = await pdfDoc.save();
+    const outputDir = path.join(__dirname, '/downloads');
+    await fs.promises.mkdir(outputDir, { recursive: true });
+    
+    const outputPath = path.join(outputDir, `${Date.now()}_enhanced_resume.pdf`);
+    await fs.promises.writeFile(outputPath, enhancedPdfBytes);
+    
+}
+
 router.post('/upload', upload.single('resume'), async (req, res) => {
   try {
     console.log("efsdfcz")
@@ -52,30 +79,14 @@ router.post('/upload', upload.single('resume'), async (req, res) => {
     const aiReview = await analyzeResume(extractedText);
     const aiResult = await analyzeResume(aiReview.enhancedResume);
 
-    // const pdfDoc = await PDFDocument.create();
-    // const page = pdfDoc.addPage();
-    // const fontSize = 12;
-    // let y = page.getHeight() - 30;
-
-    // const lines = aiResult.enhancedResume.split('\n');
-    // lines.forEach(line => {
-    //   if (y < 30) {
-    //     page = pdfDoc.addPage();
-    //     y = page.getHeight() - 30;
-    //   }
-    //   page.drawText(line, { x: 30, y, size: fontSize });
-    //   y -= fontSize + 2;
-    // });
-    // fs.unlinkSync(filePath)
-    // const enhancedPdfBytes = await pdfDoc.save();
-    // const outputPath = path.join(__dirname, '../downloads', `${Date.now()}_enhanced_resume.pdf`);
-    // await fs.writeFile(outputPath, enhancedPdfBytes);
-
+     await  preparePdfForDownload(aiResult)
     res.status(200).json({ message: 'Resume uploaded and parsed successfully!', resume,aiResult });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to process resume.' });
   }
 });
+
+
 
 module.exports = router;
