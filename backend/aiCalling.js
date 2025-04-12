@@ -35,7 +35,9 @@ Return the response in this JSON format:
 {
   "issues": [],
   "suggestions": [],
-  "enhancedResume": ""
+  "enhancedResume": "",
+  "atsscorebefore":"",
+  "atsscoreafter":""
 }
 `;
 
@@ -54,7 +56,7 @@ async function analyzeResume(text) {
 
   try {
     const geminiResult = await callGemini(prompt);
-    return JSON.parse(geminiResult);
+    return JSON.parse(geminiResult.replace(/^```json\n/, "").replace(/\n```$/, ""));
   } catch (err) {
     console.error("Gemini also failed:", err.message);
     return fallbackResponse;

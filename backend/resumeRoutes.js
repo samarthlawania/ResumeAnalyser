@@ -37,6 +37,7 @@ const upload = multer({ storage });
 
 router.post('/upload', upload.single('resume'), async (req, res) => {
   try {
+    console.log("efsdfcz")
     const filePath = req.file.path;
     const extractedText = await extractTextFromPDF(filePath);
     const contactInfo = extractContactInfo(extractedText);
