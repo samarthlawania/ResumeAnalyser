@@ -4,9 +4,9 @@ dotenv.config();
 const {genAI}  = require('./geminiClient');
 
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const openai = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
  async function callGemini(prompt) {
 
   const model = await genAI.models.generateContent({
