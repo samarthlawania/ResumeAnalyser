@@ -5,9 +5,7 @@ const pdfParse = require('pdf-parse');
 const Resume = require('./models/Resume');
 const fs = require('fs-extra');
 const path = require('path');
-const { OpenAI } = require('openai');
-const { PDFDocument } = require('pdf-lib');
-// const fontBytes = fs.readFileSync("./fonts/NotoSans-Regular.ttf");
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const { analyzeResume } = require('./aiCalling');
 
 
@@ -41,24 +39,24 @@ async function preparePdfForDownload(aiResult){
     const page = pdfDoc.addPage();
     const fontSize = 12;
   //  const customFont = await pdfDoc.embedFont(fontBytes);
-    let y = page.getHeight() - 30;
-
-    const lines = aiResult.enhancedResume.split('\n');
-    lines.forEach(line => {
-      line = line.replace(/[^\x00-\x7F]/g, "");
-      if (y < 30) {
-        page = pdfDoc.addPage();
-        y = page.getHeight() - 30;
-      }
-      page.drawText(line, { x: 30, y, size: fontSize });
-      y -= fontSize + 2;
-    });
-    const enhancedPdfBytes = await pdfDoc.save();
-    const outputDir = path.join(__dirname, '/downloads');
-    await fs.promises.mkdir(outputDir, { recursive: true });
+    // let y = page.getHeight() - 30;
+    // const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    // const lines = aiResult.enhancedResume.split('\n');
+    // lines.forEach(line => {
+    //   line = line.replace(/[^\x00-\x7F]/g, "");
+    //   if (y < 30) {
+    //     page = pdfDoc.addPage();
+    //     y = page.getHeight() - 30;
+    //   }
+    //   page.drawText(line, { x: 30, y,font,color: rgb(0, 0, 0)});
+    //   y -= fontSize + 2;
+    // });
+    // const enhancedPdfBytes = await pdfDoc.save();
+    // const outputDir = path.join(__dirname, '/downloads');
+    // await fs.promises.mkdir(outputDir, { recursive: true });
     
-    const outputPath = path.join(outputDir, `${Date.now()}_enhanced_resume.pdf`);
-    await fs.promises.writeFile(outputPath, enhancedPdfBytes);
+    // const outputPath = path.join(outputDir, `${Date.now()}_enhanced_resume.pdf`);
+    // await fs.promises.writeFile(outputPath, enhancedPdfBytes);
     
 }
 
