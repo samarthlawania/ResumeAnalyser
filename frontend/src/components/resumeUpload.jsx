@@ -17,7 +17,7 @@ const ResumeUpload = () => {
     setResumeData(null);
 
     try {
-      const res = await fetch("http://localhost:5000/api/resume/upload", {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/api/resume/upload` , {
         method: "POST",
         body: formData,
       });
