@@ -10,7 +10,7 @@ const {genAI}  = require('./geminiClient');
  async function callGemini(prompt) {
 
   const model = await genAI.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-1.5-pro",
     contents: prompt,
   });
 
@@ -18,27 +18,37 @@ const {genAI}  = require('./geminiClient');
   return model.text; 
 }
 const promptTemplate = (text) => `
-You are a professional resume reviewer. Here's a resume text:
+You are an expert resume reviewer and ATS specialist.
+
+Given the following resume text:
 
 ---
 ${text}
 ---
 
-1. Identify any issues with formatting, clarity, grammar, or content.
-2. Suggest improvements to enhance its ATS (Applicant Tracking System) score.
-3. Provide an improved version of the resume text (same structure, better wording).
-4.ATS score out of 100
-- Feedback on what is missing
-- Keywords the resume should include
+Perform the following tasks **without adding any new skills, projects, or roles** that are not explicitly mentioned:
 
-Return the response in this JSON format:
+1. Identify formatting, clarity, grammar, or content issues.
+2. Suggest improvements specifically aimed at increasing ATS (Applicant Tracking System) compatibility. Base these on real-world ATS keyword requirements for relevant job roles (e.g., software engineer, data analyst).
+3. Rewrite the resume text with better structure, wording, and ATS optimization — but **only using the information already present** in the original text.
+4. Evaluate the resume's ATS score **before and after** improvements, out of 100.
+
+Output the response in the following JSON format:
+
 {
   "issues": [],
   "suggestions": [],
   "enhancedResume": "",
-  "atsscorebefore":"",
-  "atsscoreafter":""
+  "atsscorebefore": "",
+  "atsscoreafter": "",
+  "missingElements": [],
+  "recommendedKeywords": []
 }
+
+Constraints:
+- Do not invent or assume any experiences, skills, or qualifications.
+- Be concise and professional in your feedback.
+- Only analyze and suggest — never fabricate
 `;
 
 
